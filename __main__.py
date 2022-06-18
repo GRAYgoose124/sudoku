@@ -18,6 +18,11 @@ if __name__ == '__main__':
     print(SudokuChecker().check_row(b, 1), " == True") 
     print(SudokuChecker().check_col(b, 1), " == True")
     print(SudokuChecker().check_nonet(b, 1)  , " == True")
+    print(SudokuChecker().check_board(b), " == True : Good Board!")
+
+    print("Nonet: ")
+    for i in range(9):
+        print(f"{i}:", SudokuChecker().check_nonet(b, i))
 
     print(b)
     

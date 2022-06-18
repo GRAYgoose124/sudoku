@@ -1,4 +1,5 @@
 import random
+from itertools import permutations
 
 from checker import SudokuChecker
 
@@ -11,21 +12,37 @@ class SudokuBoard:
         self.solution = None
 
     def generate(self):
-        bucket = []
-        pos = (random.randint(0, 8), random.randint(0, 8))
-        moves = [(-1, 0), (0, -1), (0, 1), (1, 0)]
-        new_pos = (5, 5)
+        not_visited = [(i, j) for i in range(9) for j in range(9)]
+        pos = random.randint(0, 8), random.randint(0, 8)
 
-        
-        for i in range(9):
-            for j in range(9):
-                choices = SudokuChecker.check(self.board, (i, j)) 
-                try:
-                    choice = random.choice(choices)
-                except IndexError:
-                    pass
-                self.board[i][j] = choice
+        moves = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        move = random.choice(moves)
+
+        i = 0  
+        limit = 0
+        while i < 81:
+            if self.board[pos[0]][pos[1]] != 0:
+                if len(not_visited) == 0:
+                    return True
+                i = i - 1
+                pos = random.choice(not_visited)
+                continue 
+
+            choices = SudokuChecker.check(self.board, pos) 
+            try: 
+                choice = random.choice(choices)
+            except IndexError:
+                pass
+
+            self.board[pos[0]][pos[1]] = choice
+
+            not_visited.remove(pos)
+            pos = (pos[0] + move[0]) % 9, (pos[1] + move[1]) % 9
+            if not (0 <= pos[0] + move[0] and pos[0] + move[0] <= 8 and 0 <= pos[1] + move[1] and pos[1] + move[1] <= 8):
+                move = random.choice(moves)
                 
+            i = i + 1
+
     
 
     def pretty(self):

@@ -34,20 +34,19 @@ class SudokuChecker:
 
 
     @staticmethod
-    def check_nonet(board, n):
+    def check_nonet(board, i):
         s = 0
         bucket = []
         nonets = [(1,1),(1,4),(1,7),(4,1),(4,4),(4,7),(7,1),(7,4),(7,7)]
         neighbors = [(-1, -1),  (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)]
         
-        for i in range(9):
-            for n in neighbors:
-                cell = board[nonets[i][0] + n[0]][nonets[i][1] + n[1]]
-                if cell not in bucket or cell == 0:
-                    bucket.append(cell)
-                    s += cell
-                else:
-                    return False
+        for n in neighbors:
+            cell = board[nonets[i][0] + n[0]][nonets[i][1] + n[1]]
+            if cell not in bucket or cell == 0:
+                bucket.append(cell)
+                s += cell
+            else:
+                return False
         if s != 45:
             return set(SudokuChecker.full_bucket) - set(bucket)
 

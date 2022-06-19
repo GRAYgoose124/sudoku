@@ -11,8 +11,21 @@ from checker import SudokuChecker
 
 class SudokuApp():
     def __init__(self, new_game=True, nhints=60, cell_size=50):
+        self.current_pos = None
+        self.last_move = None
+        self.filled = [ [None for list in range(9)] for list in range(9) ]
+        self.notetaking = False
+
+        self.notes = [ [None for list in range(9)] for list in range(9) ]
+
+        for i, r in enumerate(self.notes):
+            for j, e in enumerate(r):
+                self.notes[i][j] = {}
+        
         self.root = Tk()
-        self.font = Font(family="DejaVu Sans Mono", size=20, weight="bold")
+
+        self.note_font = Font(family="DejaVu Sans Mono", size=6, weight="bold")
+        self.cell_font = Font(family="DejaVu Sans Mono", size=20)
 
         self.game = SudokuGame(new_game=new_game, nhints=nhints, cell_size=cell_size)
         self.canvas = Canvas(self.game)
@@ -24,10 +37,9 @@ class SudokuApp():
         self.root.bind('R', lambda e: setattr(self.game.board, 'board', deepcopy(self.game.board.starting)))
         self.root.bind('C', self.check_solution)
         self.root.bind('N', lambda e: self.game.board.new_game(nhints=17))
-        self.root.bind('<Escape>', self.quit)
+        self.root.bind('n', lambda e: setattr(self, 'notetaking', not self.notetaking))
 
-        self.current_pos = None
-        self.last_move = None
+        self.root.bind('<Escape>', self.quit)
 
     def initUI(self, game):
         game.master.title("Sudoku Game")
@@ -40,13 +52,36 @@ class SudokuApp():
         o = [self.game.pos[0], self.game.pos[1]]
 
         for i, cell in enumerate(self.game.cells):
-            value = self.game.board[i // 9][i % 9]
+            ii, j = i // 9, i % 9
+
+            value = self.game.board[ii][j]
+            notes = self.notes[ii][j]
+
             if value == 0:
                 value = ' '
-                
             center = (cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2
-            self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill='', outline='black')
-            self.canvas.create_text(center[0], center[1], font=self.font, text=value)
+
+            # Color the cells based on the last move
+            if self.current_pos is not None and self.current_pos[0] == ii and self.current_pos[1] == j:
+                if self.last_move is not None:
+                    if self.last_move:
+                        self.filled = (ii, j, 'green')
+                    elif self.last_move == False:
+                        self.filled = (ii, j, 'red')
+          
+                    self.last_move = None
+
+            # Create border and draw numbers:
+            self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=self.filled[2] if self.filled[0] == ii and self.filled[1] ==  j else '', outline='black')
+            self.canvas.create_text(center[0], center[1], font=self.cell_font, text=value)
+
+            # Draw notes
+            for c in notes:
+                addd = lambda x, y: (x[0] * y[0], x[1] * y[1])
+                note_offset = addd(self.game.board.neighbors[int(c) - 1], (self.game.cell_size * .3, self.game.cell_size * .3))
+                self.canvas.create_text(center[0]+note_offset[0], center[1]+note_offset[1], font=self.note_font, text=c, fill='darkblue')
+                    
+
         self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2) , o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.1, self.game.cells[-1][1]+self.game.cell_size*1.1)
      
     def run(self):
@@ -73,17 +108,26 @@ class SudokuApp():
 
     def on_key(self, event): 
         if self.current_pos is not None:
-            if event.char == "\x08":
-                self.game.board[self.current_pos[0]][self.current_pos[1]] = 0
-                self.last_move = True
-            elif event.char.isdigit():
-                if self.game.board.check_move(self.current_pos, int(event.char)):
-                    self.game.board[self.current_pos[0]][self.current_pos[1]] = int(event.char)
+            if not self.notetaking:
+                if event.char == "\x08":
+                    self.game.board[self.current_pos[0]][self.current_pos[1]] = 0
                     self.last_move = True
+                elif event.char.isdigit():
+                    if self.game.board.check_move(self.current_pos, int(event.char)):
+                        self.game.board[self.current_pos[0]][self.current_pos[1]] = int(event.char)
+                        self.last_move = True
+                    else:
+                        self.last_move = False
                 else:
-                    self.last_move = False
+                    self.last_move = True
             else:
-                self.last_move = True
+                if event.char.isdigit():
+                    if event.char not in self.notes[self.current_pos[0]][self.current_pos[1]]:
+                        self.notes[self.current_pos[0]][self.current_pos[1]][event.char] = True
+                    else:
+                        del(self.notes[self.current_pos[0]][self.current_pos[1]][event.char])
+
+          
 
     def solve_game(self, event):
         done = True

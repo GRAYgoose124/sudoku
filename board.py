@@ -24,9 +24,9 @@ class SudokuBoard:
 
         # for i in range(9):
             
-        for x in map(lambda x: (x[0][0] + x[1][0], x[0][1] + x[1][1]), zip(random.sample(self.nonets, 9), random.sample(self.neighbors, 9))):
-            self.board[x[0]][x[1]] = random.choice(b)
-            b.remove(self.board[x[0]][x[1]])
+        # for x in map(lambda x: (x[0][0] + x[1][0], x[0][1] + x[1][1]), zip(random.sample(self.nonets, 9), random.sample(self.neighbors, 9))):
+        #     self.board[x[0]][x[1]] = random.choice(b)
+        #     b.remove(self.board[x[0]][x[1]])
 
 
         SudokuGenerator.solve(self)

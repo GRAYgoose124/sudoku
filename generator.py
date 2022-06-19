@@ -1,5 +1,6 @@
 import random
 
+
 class SudokuGenerator:
     @staticmethod
     def solve(board):

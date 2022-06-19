@@ -21,13 +21,13 @@ class SudokuBoard:
 
     def new_game(self, nhints=60):
         b = random.sample(self.bucket, 9)
+        self.board = [ [0 for list in range(9)] for list in range(9) ]
 
         # for i in range(9):
             
         # for x in map(lambda x: (x[0][0] + x[1][0], x[0][1] + x[1][1]), zip(random.sample(self.nonets, 9), random.sample(self.neighbors, 9))):
         #     self.board[x[0]][x[1]] = random.choice(b)
         #     b.remove(self.board[x[0]][x[1]])
-
 
         SudokuGenerator.solve(self)
         self.solution = deepcopy(self.board)
@@ -36,6 +36,7 @@ class SudokuBoard:
             for _ in range(min(81-nhints, 64)):
                 self.board[random.randint(0,8)][random.randint(0,8)] = 0
 
+        self.starting = deepcopy(self.board)
         return self
 
     def is_filled(self):
@@ -50,13 +51,6 @@ class SudokuBoard:
             return SudokuChecker.check_board(self.board)
         else:
             return False
-
-    # def check_solution(self, partial=True):
-    #     self.starting = deepcopy(self.board)
-    #     self.board = self.solution
-    #     result = self.check(partial)
-    #     self.board = self.starting
-    #     return result
 
     def check_move(self, pos, value):
         temp = self.board[pos[0]][pos[1]]

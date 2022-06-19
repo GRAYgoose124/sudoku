@@ -45,9 +45,8 @@ class SudokuBoard:
         
         return True
 
-    def check(self, partial=True):
-        print(self)
-        if partial or self.is_filled():
+    def check(self, full=True):
+        if not full or self.is_filled():
             return SudokuChecker.check_board(self.board)
         else:
             return False

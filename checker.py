@@ -57,25 +57,25 @@ class SudokuChecker:
 
     @staticmethod
     def check_board(board):
-        board = board
         for i in range(9):
-            if not SudokuChecker.check_row(board, i) == set():
+            if SudokuChecker.BadMove in SudokuChecker.check_row(board, i):
                 return False
-            if not SudokuChecker.check_col(board, i) == set():
+            if SudokuChecker.BadMove in SudokuChecker.check_col(board, i):
                 return False
-            if not SudokuChecker.check_nonet(board, i) == set():
+            if SudokuChecker.BadMove in SudokuChecker.check_nonet(board, i):
                 return False
 
         return True
    
     @staticmethod
     def check_move(board, pos):
+        b = board.board
         """Terrible method to get a list of valid moves"""
-        if not SudokuChecker.check_row(board, pos[0]) == set():
+        if SudokuChecker.BadMove in SudokuChecker.check_row(b, pos[0]):
             return False
-        if not SudokuChecker.check_col(board, pos[1]) == set():
+        if SudokuChecker.BadMove in SudokuChecker.check_col(b, pos[1]):
             return False
-        if not SudokuChecker.check_nonet(board, board.get_nonet_idx(pos)) == set():
+        if SudokuChecker.BadMove in SudokuChecker.check_nonet(b, board.get_nonet_idx(pos)):
             return False
 
         return True

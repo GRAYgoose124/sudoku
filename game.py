@@ -1,8 +1,8 @@
-from tkinter import Tk, Canvas, Frame, BOTH
+from tkinter import Tk, Canvas, Frame, BOTH, messagebox
 import math
 
 from board import SudokuBoard
-
+from checker import SudokuChecker
 
 class SudokuApp():
     def __init__(self, new_game=True, nhints=60, cell_size=50):
@@ -47,46 +47,58 @@ class SudokuApp():
 
     def update(self):
         self.draw_grid(self.canvas)
-        self.root.after(16, self.update)
+        self.root.after(int((1/60)*100), self.update)
 
     def on_click(self, event):
-        closest = 1000
-        for i, cell in enumerate(self.game.cells):
-            center = (cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2
-
-            distance = lambda a, b: math.sqrt( ((a.x - b[0])**2 - self.game.cell_size / 2) + ((a.y - b[1])**2 - self.game.cell_size / 2) )
-            
-            dist = None
-            try:
-                dist = distance(event, center)
-            except ValueError:
-                dist = distance(event, cell)
-
-            if dist < closest:
-                closest = dist
-                self.current_pos = i // 9, i % 9
-        
-        print(self.current_pos)
+        self.current_pos = self.game.get_closest_cell((event.x, event.y))
 
     def on_key(self, event):
-        if event.char.isdigit() and self.current_pos is not None:
-            self.game.board[self.current_pos[0]][self.current_pos[1]] = event.char
+        if self.current_pos is not None:
+            if not event.char.isdigit():
+                self.game.board[self.current_pos[0]][self.current_pos[1]] = 0
+            elif self.game.board.check_move(self.current_pos, int(event.char)):
+                self.game.board[self.current_pos[0]][self.current_pos[1]] = int(event.char)
 
-            print(event.char)
-    
+        if event.char == 'c':
+            if self.game.board.check():
+                messagebox.showinfo(title="You win!", message="Congratulations!")
+            else:
+                messagebox.showinfo(title="Sorry!", message="Not correct!")
+
 
 
 class SudokuGame(Frame):
     def __init__(self, new_game=True, nhints=60, cell_size=50):        
         super().__init__()
 
-        self.board = SudokuBoard(new_game=new_game, nhints=nhints)
         self.cell_size = cell_size
         self.pos = (self.cell_size*5, self.cell_size*5)
-        self.cells = self.get_cell_offsets()
 
-    def get_cell_offsets(self):
-        o = [self.pos[0], self.pos[1]]
+        self.board = SudokuBoard(new_game=new_game, nhints=nhints)
+        self.cells = self.get_cell_offsets(self.pos)
+
+    def get_closest_cell(self, pos):
+        current = None
+        closest = 1000
+        for i, cell in enumerate(self.cells):
+            center = (cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2
+
+            distance = lambda a, b: math.sqrt( ((a[0] - b[0])**2 - self.cell_size / 2) + ((a[1] - b[1])**2 - self.cell_size / 2) )
+            
+            dist = None
+            try:
+                dist = distance(pos, center)
+            except ValueError:
+                dist = distance(pos, cell)
+
+            if dist < closest:
+                closest = dist
+                current = i // 9, i % 9
+        
+        return current
+
+    def get_cell_offsets(self, pos):
+        o = [pos[0], pos[1]]
 
         offsets = []
         for i in self.board.neighbors:

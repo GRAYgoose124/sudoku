@@ -18,4 +18,4 @@ No keybinds yet, here's the code:
     self.root.bind('N', lambda e: self.game.board.new_game(nhints=17))
     self.root.bind('<Escape>', self.quit)
 
-![Sudoku TkGUI](screenshots/board.png)
+![Sudoku TkGUI](screenshots/sudoku.png "Sudoku board with Tk")

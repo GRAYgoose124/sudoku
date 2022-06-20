@@ -11,9 +11,11 @@ from checker import SudokuChecker
 
 class SudokuApp():
     def __init__(self, new_game=True, nhints=60, cell_size=50):
-        self.current_pos = None
+        self.current_pos = (None, None)
         self.last_move = None
-        self.filled = [ [None for list in range(9)] for list in range(9) ]
+        self.filled = (None, None, None)
+        self.hover = (None, None, None)
+
         self.notetaking = False
 
         self.notes = [ [None for list in range(9)] for list in range(9) ]
@@ -23,7 +25,7 @@ class SudokuApp():
                 self.notes[i][j] = {}
         
         self.root = Tk()
-
+        
         self.note_font = Font(family="DejaVu Sans Mono", size=6, weight="bold")
         self.cell_font = Font(family="DejaVu Sans Mono", size=20)
 
@@ -63,16 +65,21 @@ class SudokuApp():
 
             # Color the cells based on the last move
             if self.current_pos is not None and self.current_pos[0] == ii and self.current_pos[1] == j:
+                self.hover = (ii, j, 'blue')
                 if self.last_move is not None:
                     if self.last_move:
                         self.filled = (ii, j, 'green')
                     elif self.last_move == False:
                         self.filled = (ii, j, 'red')
-          
+
                     self.last_move = None
 
             # Create border and draw numbers:
-            self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=self.filled[2] if self.filled[0] == ii and self.filled[1] ==  j else '', outline='black')
+            filled = self.filled
+            if self.hover[0] == ii and self.hover[1] == j:
+                filled = self.hover
+
+            self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=filled[2] if filled[0] == ii and filled[1] ==  j else '', outline='black')
             self.canvas.create_text(center[0], center[1], font=self.cell_font, text=value)
 
             # Draw notes

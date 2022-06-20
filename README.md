@@ -18,6 +18,8 @@ self.root.bind('R', lambda e: setattr(self.game.board, 'board', deepcopy(self.ga
 self.root.bind('C', self.check_solution)
 self.root.bind('N', lambda e: self.game.board.new_game(nhints=17))
 self.root.bind('<Escape>', self.quit)
+self.root.bind('n', lambda e: setattr(self, 'notetaking', not self.notetaking))
+
 ```
 
 ![Sudoku TkGUI](screenshots/sudoku.png "Sudoku board with Tk")

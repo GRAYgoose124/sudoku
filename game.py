@@ -3,6 +3,7 @@ import time
 
 from tkinter import Tk, Canvas, Frame, BOTH, messagebox
 from tkinter.font import Font
+
 from copy import deepcopy
 
 from board import SudokuBoard
@@ -15,33 +16,23 @@ class SudokuApp():
         self.last_move = None
         self.filled = (None, None, None)
         self.hover = (None, None, None)
+        self.cages = [[None for _ in range(9)] for _ in range(9)]
+        self.move_checking = True
 
         self.notetaking = False
-
         self.notes = [ [None for list in range(9)] for list in range(9) ]
-
         for i, r in enumerate(self.notes):
             for j, e in enumerate(r):
                 self.notes[i][j] = {}
         
         self.root = Tk()
-        
-        self.note_font = Font(family="DejaVu Sans Mono", size=6, weight="bold")
-        self.cell_font = Font(family="DejaVu Sans Mono", size=20)
+        self.cellfont = Font(family="Terminus", size=24, weight="bold")
+        self.notefont = Font(family="Terminus", size=8)
 
         self.game = SudokuGame(new_game=new_game, nhints=nhints, cell_size=cell_size)
         self.canvas = Canvas(self.game)
         self.initUI(self.game)
-
-        self.root.bind('<ButtonRelease-1>', self.on_click)
-        self.root.bind('<Key>', self.on_key)
-        self.root.bind('S', self.solve_game)
-        self.root.bind('R', lambda e: setattr(self.game.board, 'board', deepcopy(self.game.board.starting)))
-        self.root.bind('C', self.check_solution)
-        self.root.bind('N', lambda e: self.game.board.new_game(nhints=17))
-        self.root.bind('n', lambda e: setattr(self, 'notetaking', not self.notetaking))
-
-        self.root.bind('<Escape>', self.quit)
+        self.initKeybinds()
 
     def initUI(self, game):
         game.master.title("Sudoku Game")
@@ -50,45 +41,55 @@ class SudokuApp():
 
         self.draw_grid()
  
+    def initKeybinds(self):
+        self.root.bind('<ButtonRelease-1>', self.on_click)
+        self.root.bind('<Key>', self.on_key)
+        self.root.bind('S', self.solve_game)
+        self.root.bind('R', lambda e: setattr(self.game.board, 'board', deepcopy(self.game.board.starting)))
+        self.root.bind('C', self.check_solution)
+        self.root.bind('c', lambda e: setattr(self, 'move_checking', not self.move_checking))
+        self.root.bind('N', lambda e: self.game.board.new_game(nhints=17))
+        self.root.bind('n', lambda e: setattr(self, 'notetaking', not self.notetaking))
+        self.root.bind('<Escape>', self.quit)
+
     def draw_grid(self):
         o = [self.game.pos[0], self.game.pos[1]]
 
-        for i, cell in enumerate(self.game.cells):
-            ii, j = i // 9, i % 9
+        for _i, cell in enumerate(self.game.cells):
+            i, j = _i // 9, _i % 9
 
-            value = self.game.board[ii][j]
-            notes = self.notes[ii][j]
+            value = self.game.board[i][j]
+            notes = self.notes[i][j]
 
             if value == 0:
                 value = ' '
             center = (cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2
 
             # Color the cells based on the last move
-            if self.current_pos is not None and self.current_pos[0] == ii and self.current_pos[1] == j:
-                self.hover = (ii, j, 'blue')
+            if self.current_pos is not None and self.current_pos[0] == i and self.current_pos[1] == j:
+                self.hover = (i, j, 'grey')
                 if self.last_move is not None:
                     if self.last_move:
-                        self.filled = (ii, j, 'green')
+                        self.filled = (i, j, 'green')
                     elif self.last_move == False:
-                        self.filled = (ii, j, 'red')
+                        self.filled = (i, j, 'red')
 
                     self.last_move = None
 
             # Create border and draw numbers:
             filled = self.filled
-            if self.hover[0] == ii and self.hover[1] == j:
+            if self.hover[0] == i and self.hover[1] == j:
                 filled = self.hover
 
-            self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=filled[2] if filled[0] == ii and filled[1] ==  j else '', outline='black')
-            self.canvas.create_text(center[0], center[1], font=self.cell_font, text=value)
+            self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=filled[2] if filled[0] == i and filled[1] ==  j else '', outline='black')
+            self.canvas.create_text(center[0], center[1], font=self.cellfont, text=value)
 
             # Draw notes
             for c in notes:
                 addd = lambda x, y: (x[0] * y[0], x[1] * y[1])
                 note_offset = addd(self.game.board.neighbors[int(c) - 1], (self.game.cell_size * .3, self.game.cell_size * .3))
-                self.canvas.create_text(center[0]+note_offset[0], center[1]+note_offset[1], font=self.note_font, text=c, fill='darkblue')
+                self.canvas.create_text(center[0]+note_offset[0], center[1]+note_offset[1], font=self.notefont, text=c, fill='darkblue')
                     
-
         self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2) , o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.1, self.game.cells[-1][1]+self.game.cell_size*1.1)
      
     def run(self):
@@ -99,13 +100,7 @@ class SudokuApp():
     def update(self):
         self.canvas.delete('all')
         self.draw_grid()
-
-        if self.last_move:
-            self.canvas.create_text(100, 10, text=">     Valid! <")
-        else:
-            self.canvas.create_text(100, 10, text="> Not Valid! <")
-
-        self.root.after(int((1/60)*100), self.update)
+        self.root.after(13, self.update)
 
     def quit(self, event):
         self.root.quit()
@@ -120,11 +115,13 @@ class SudokuApp():
                     self.game.board[self.current_pos[0]][self.current_pos[1]] = 0
                     self.last_move = True
                 elif event.char.isdigit():
-                    if self.game.board.check_move(self.current_pos, int(event.char)):
-                        self.game.board[self.current_pos[0]][self.current_pos[1]] = int(event.char)
-                        self.last_move = True
-                    else:
-                        self.last_move = False
+                    self.game.board[self.current_pos[0]][self.current_pos[1]] = int(event.char)
+
+                    if self.move_checking:
+                        if self.game.board.check_move(self.current_pos, int(event.char)):
+                            self.last_move = True
+                        else:
+                            self.last_move = False
                 else:
                     self.last_move = True
             else:
@@ -133,8 +130,6 @@ class SudokuApp():
                         self.notes[self.current_pos[0]][self.current_pos[1]][event.char] = True
                     else:
                         del(self.notes[self.current_pos[0]][self.current_pos[1]][event.char])
-
-          
 
     def solve_game(self, event):
         done = True
@@ -148,7 +143,7 @@ class SudokuApp():
                 done = True
 
         if not done:
-            self.root.after(int((1/2)*100), lambda: self.solve_game(event))
+            self.root.after(int((1/3)*100), lambda: self.solve_game(event))
 
     def check_solution(self, event):
         if self.game.board.check():

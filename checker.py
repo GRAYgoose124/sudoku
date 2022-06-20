@@ -1,10 +1,10 @@
+from helpers import neighbors, nonets
+
+
 class SudokuChecker:
     BadMove = -1 # Sentinel indicating a bad position has occured.
-    full_bucket = [1,2,3,4,5,6,7,8,9]
-
-    nonets = [(1,1),(1,4),(1,7),(4,1),(4,4),(4,7),(7,1),(7,4),(7,7)]
-    neighbors = [(-1, -1),  (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)]
-
+    full_bucket = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    
     @staticmethod
     def check_row(board, row):
         s = 0
@@ -17,7 +17,7 @@ class SudokuChecker:
                 return set([SudokuChecker.BadMove])
 
         if s != 45:
-            return set(SudokuChecker.full_bucket) - set(bucket)
+            return set(range(9)) - set(bucket)
         else:
             return set()
 
@@ -38,7 +38,7 @@ class SudokuChecker:
             return set()
 
     @staticmethod
-    def check_nonet(board, i):
+    def check_non(board, i):
         s = 0
         bucket = []
         
@@ -56,30 +56,36 @@ class SudokuChecker:
             return set()
 
     @staticmethod
+    def check(board, i):
+        j, k, l = i, i, i
+        if isinstance(i, tuple):
+            j, k, l = i
+
+        row = SudokuChecker.check_row(board, j)
+        col = SudokuChecker.check_col(board, k)
+        non = SudokuChecker.check_non(board, l)
+        if (SudokuChecker.BadMove in row or 
+            SudokuChecker.BadMove in col or 
+            SudokuChecker.BadMove in non):
+            return False
+        return row & col & non
+
+    @staticmethod
     def check_board(board):
         for i in range(9):
-            if SudokuChecker.BadMove in SudokuChecker.check_row(board, i):
-                return False
-            if SudokuChecker.BadMove in SudokuChecker.check_col(board, i):
-                return False
-            if SudokuChecker.BadMove in SudokuChecker.check_nonet(board, i):
-                return False
+            valid = SudokuChecker.check(board, i)
 
-        return True
+        if valid == set():
+            return True
    
     @staticmethod
     def check_move(board, pos):
-        b = board.board
-        """Terrible method to get a list of valid moves"""
-        if SudokuChecker.BadMove in SudokuChecker.check_row(b, pos[0]):
-            return False
-        if SudokuChecker.BadMove in SudokuChecker.check_col(b, pos[1]):
-            return False
-        if SudokuChecker.BadMove in SudokuChecker.check_nonet(b, board.get_nonet_idx(pos)):
-            return False
+        valid = SudokuChecker.check(board, pos[0])
+        if valid == set():
+            return True
 
-        return True
-
-    @staticmethod
+    @staticmethod 
     def valid_moves(board, pos):
-        return list(SudokuChecker.all_moves(board, pos) - set([-1]))
+        return list((SudokuChecker.check_col(board, pos[0]) &
+                     SudokuChecker.check_row(board, pos[1]) &
+                     SudokuChecker.check_non(board, pos   )) - set([-1])) 

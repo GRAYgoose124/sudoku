@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from board import SudokuBoard
 from checker import SudokuChecker
-
+from helpers import neighbors
 
 class SudokuApp():
     def __init__(self, new_game=True, nhints=60, cell_size=50):
@@ -48,7 +48,7 @@ class SudokuApp():
         self.root.bind('R', lambda e: setattr(self.game.board, 'board', deepcopy(self.game.board.starting)))
         self.root.bind('C', self.check_solution)
         self.root.bind('c', lambda e: setattr(self, 'move_checking', not self.move_checking))
-        self.root.bind('N', lambda e: self.game.board.new_game(nhints=17))
+        self.root.bind('N', lambda e: self.game.board.solver.generate())
         self.root.bind('n', lambda e: setattr(self, 'notetaking', not self.notetaking))
         self.root.bind('<Escape>', self.quit)
 
@@ -87,7 +87,7 @@ class SudokuApp():
             # Draw notes
             for c in notes:
                 addd = lambda x, y: (x[0] * y[0], x[1] * y[1])
-                note_offset = addd(self.game.board.neighbors[int(c) - 1], (self.game.cell_size * .3, self.game.cell_size * .3))
+                note_offset = addd(neighbors[int(c) - 1], (self.game.cell_size * .3, self.game.cell_size * .3))
                 self.canvas.create_text(center[0]+note_offset[0], center[1]+note_offset[1], font=self.notefont, text=c, fill='darkblue')
                     
         self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2) , o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.1, self.game.cells[-1][1]+self.game.cell_size*1.1)
@@ -129,18 +129,19 @@ class SudokuApp():
                         del(self.notes[self.current_pos[0]][self.current_pos[1]][event.char])
 
     def solve_game(self, event):
-        done = True
-        for i, r in enumerate(self.game.board.board):
-            try:
-                j = r.index(0)
-                self.game.board.board[i][j] = self.game.board.solution[i][j]
-                done = False
-                break
-            except ValueError:
-                done = True
+        self.game.board.solver.solve(self.game.board.board, generate=True)
+        # done = True
+        # for i, r in enumerate(self.game.board.board):
+        #     try:
+        #         j = r.index(0)
+        #         self.game.board.board[i][j] = self.game.board.solution[i][j]
+        #         done = False
+        #         break
+        #     except ValueError:
+        #         done = True
 
-        if not done:
-            self.root.after(int((1/3)*100), lambda: self.solve_game(event))
+        # if not done:
+        #     self.root.after(int((1/3)*100), lambda: self.solve_game(event))
 
     def check_solution(self, event):
         if self.game.board.check():
@@ -184,9 +185,9 @@ class SudokuGame(Frame):
         o = [pos[0], pos[1]]
 
         offsets = []
-        for i in self.board.neighbors:
+        for i in neighbors:
             off = o[0] + ((i[0]*self.cell_size*3.1)), o[1] + ((i[1]*self.cell_size*3.1))
-            for j in self.board.neighbors:
+            for j in neighbors:
                 off2 = off[0] + (j[0]*self.cell_size), off[1] + (j[1]*self.cell_size)
                 cell = off2[0], off2[1], off2[0]+self.cell_size, off2[1]+self.cell_size
                 offsets.append(cell)

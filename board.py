@@ -4,51 +4,20 @@ from copy import deepcopy
 
 from generator import SudokuGenerator
 from checker import SudokuChecker
+from helpers import is_filled
 
 
 class SudokuBoard: 
-    bucket = [1,2,3,4,5,6,7,8,9]
-    nonets = [(1,1),(1,4),(1,7),(4,1),(4,4),(4,7),(7,1),(7,4),(7,7)]
-    neighbors = [(-1, -1),  (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)]
-
     def __init__(self, new_game=False, nhints=17):
         self.board = None
         self.starting = None
         self.solution = None
 
-        if new_game:
-            self.new_game(nhints)
-
-    def new_game(self, nhints=60):
-        self.board = [ [0 for e in range(9)] for e2 in range(9) ]
-        self.starting = [ [0 for e in range(9)] for e2 in range(9) ]
-        self.solution = [ [0 for e in range(9)] for e2 in range(9) ]
-
-        # for i in range(9):
-            
-        # for x in map(lambda x: (x[0][0] + x[1][0], x[0][1] + x[1][1]), zip(random.sample(self.nonets, 9), random.sample(self.neighbors, 9))):
-        #     self.board[x[0]][x[1]] = random.choice(b)
-        #     b.remove(self.board[x[0]][x[1]])
-
-        SudokuGenerator.solve(self)
-        self.solution = deepcopy(self.board)
-        
-        if nhints != 0:
-            for _ in range(min(81-nhints, 64)):
-                self.board[random.randint(0,8)][random.randint(0,8)] = 0
-
-        self.starting = deepcopy(self.board)
-        return self
-
-    def is_filled(self):
-        for r in self.board:
-            if 0 in r:
-                return False
-        
-        return True
+        self.solver = SudokuGenerator(self)
+        self.solver.generate()
 
     def check(self, full=True):
-        if not full or self.is_filled():
+        if not full or is_filled(self.board):
             return SudokuChecker.check_board(self.board)
         else:
             return False
@@ -63,19 +32,6 @@ class SudokuBoard:
         else: 
             self.board[pos[0]][pos[1]] = temp
             return False
-
-    def get_nonet_idx(self, pos):
-        idxs = list(map(lambda n: (n[0]-pos[0])**2 + (n[1]-pos[1])**2, SudokuBoard.nonets))
-        return idxs.index(min(idxs))
-
-    def get_nonet(self, pos):
-        bucket = []
-        idx = self.get_nonet_idx(pos)
-        for n in self.neighbors:
-            k = self.nonets[idx] 
-            bucket.append(self.board[n[0] + k[0]][n[1] + k[1]])
-
-        return bucket
     
     def __len__(self):
         return len(self.board)
@@ -85,9 +41,6 @@ class SudokuBoard:
 
     def __getitem__(self, key):
         return self.board[key]
-
-    def __setitem__(self, key, value):
-        self.board[key] = value
 
     def pretty(self, array):
         s = ""

@@ -113,7 +113,6 @@ class SudokuApp():
             if not self.notetaking:
                 if event.char == "\x08":
                     self.game.board[self.current_pos[0]][self.current_pos[1]] = 0
-                    self.last_move = True
                 elif event.char.isdigit():
                     self.game.board[self.current_pos[0]][self.current_pos[1]] = int(event.char)
 
@@ -122,8 +121,6 @@ class SudokuApp():
                             self.last_move = True
                         else:
                             self.last_move = False
-                else:
-                    self.last_move = True
             else:
                 if event.char.isdigit():
                     if event.char not in self.notes[self.current_pos[0]][self.current_pos[1]]:

@@ -11,17 +11,18 @@ class SudokuBoard:
     nonets = [(1,1),(1,4),(1,7),(4,1),(4,4),(4,7),(7,1),(7,4),(7,7)]
     neighbors = [(-1, -1),  (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)]
 
-    def __init__(self, new_game=False, nhints=60):
-        self.board = [ [0 for list in range(9)] for list in range(9) ]
-        self.starting = [ [0 for list in range(9)] for list in range(9) ]
-        self.solution = [ [0 for list in range(9)] for list in range(9) ]
+    def __init__(self, new_game=False, nhints=17):
+        self.board = None
+        self.starting = None
+        self.solution = None
 
         if new_game:
             self.new_game(nhints)
 
     def new_game(self, nhints=60):
-        b = random.sample(self.bucket, 9)
-        self.board = [ [0 for list in range(9)] for list in range(9) ]
+        self.board = [ [0 for e in range(9)] for e2 in range(9) ]
+        self.starting = [ [0 for e in range(9)] for e2 in range(9) ]
+        self.solution = [ [0 for e in range(9)] for e2 in range(9) ]
 
         # for i in range(9):
             

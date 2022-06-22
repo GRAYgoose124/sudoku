@@ -4,13 +4,15 @@ from copy import deepcopy
 from helpers import get_nonet, is_filled
 
 
-
 class SudokuGenerator:
     def __init__(self, board):
         self.board = board
         self.counter = 0
 
     def solve(self, board, generate=False):
+        if is_filled(board):
+            return
+
         for i in range(81):
             row, col = i // 9, i % 9
 
@@ -22,7 +24,7 @@ class SudokuGenerator:
                 for value in bucket:
                     if value not in board[row]:
                         if value not in [board[i][col] for i in range(9)]:
-                            if value not in []:
+                            if value not in get_nonet(board, (row, col)):
                                 board[row][col] = value
                                 
                                 if is_filled(board):
@@ -36,7 +38,7 @@ class SudokuGenerator:
                 break
         board[row][col] = 0
 
-    def generate(self, attempts=1):
+    def generate(self, attempts=3):
         self.board.board = [ [0 for e in range(9)] for e2 in range(9) ]
         self.board.starting = [ [0 for e in range(9)] for e2 in range(9) ]
         self.board.solution = [ [0 for e in range(9)] for e2 in range(9) ]

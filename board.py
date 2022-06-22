@@ -2,18 +2,14 @@ import random
 from itertools import permutations
 from copy import deepcopy
 
-from generator import SudokuGenerator
 from helpers import is_filled, get_nonet
 
 
 class SudokuBoard: 
-    def __init__(self, new_game=False, nhints=17):
+    def __init__(self):
         self.board = None
         self.starting = None
         self.solution = None
-
-        self.solver = SudokuGenerator(self)
-        self.solver.generate()
 
     def check_move(self, pos, value):
         if value not in self.board[pos[0]]:

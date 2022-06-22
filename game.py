@@ -7,8 +7,8 @@ from tkinter.font import Font
 from copy import deepcopy
 
 from board import SudokuBoard
-from checker import SudokuChecker
 from helpers import neighbors
+
 
 class SudokuApp():
     def __init__(self, new_game=True, nhints=60, cell_size=50):
@@ -61,6 +61,7 @@ class SudokuApp():
             value = self.game.board[i][j]
             notes = self.notes[i][j]
 
+            # get cell center
             if value == 0:
                 value = ' '
             center = (cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2
@@ -76,22 +77,26 @@ class SudokuApp():
 
                     self.last_move = None
 
-            # Create border and draw numbers:
             filled = self.filled
             if self.hover[0] == i and self.hover[1] == j:
                 filled = self.hover
-
+            
+            # grid cell and value
             self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=filled[2] if filled[0] == i and filled[1] ==  j else '', outline='black')
             self.canvas.create_text(center[0], center[1], font=self.cellfont, text=value)
 
-            # Draw notes
+            # self.canvas.create_text(center[0], center[1], font=self.notefont, text=f'{_i}:{i}, {j}')
+
+            # notes
             for c in notes:
                 addd = lambda x, y: (x[0] * y[0], x[1] * y[1])
                 note_offset = addd(neighbors[int(c) - 1], (self.game.cell_size * .3, self.game.cell_size * .3))
                 self.canvas.create_text(center[0]+note_offset[0], center[1]+note_offset[1], font=self.notefont, text=c, fill='darkblue')
-                    
+
+
+        # Outlining square         
         self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2) , o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.1, self.game.cells[-1][1]+self.game.cell_size*1.1)
-     
+        
     def run(self):
         self.root.geometry("550x550+500+500")
         self.update()
@@ -144,11 +149,13 @@ class SudokuApp():
         #     self.root.after(int((1/3)*100), lambda: self.solve_game(event))
 
     def check_solution(self, event):
-        if self.game.board.check():
-            messagebox.showinfo(title="You win!", message="Congratulations!")
-        else:
-            messagebox.showinfo(title="Sorry!", message="Not correct!")           
-
+        print(self.game.board, self.game.board.pretty(self.game.board.solution))
+        for r1,r2 in zip(self.game.board.board, self.game.board.solution):
+            for e, e2 in zip(r1, r2):
+                if e != e2:
+                    messagebox.showinfo(title="Sorry!", message="Not correct!")   
+                    return        
+        messagebox.showinfo(title="You win!", message="Congratulations!")
 
 class SudokuGame(Frame):
     def __init__(self, new_game=True, nhints=60, cell_size=50):        
@@ -182,13 +189,11 @@ class SudokuGame(Frame):
         return current
 
     def get_cell_offsets(self, pos):
-        o = [pos[0], pos[1]]
+        o = (self.cell_size, self.cell_size)
 
         offsets = []
-        for i in neighbors:
-            off = o[0] + ((i[0]*self.cell_size*3.1)), o[1] + ((i[1]*self.cell_size*3.1))
-            for j in neighbors:
-                off2 = off[0] + (j[0]*self.cell_size), off[1] + (j[1]*self.cell_size)
-                cell = off2[0], off2[1], off2[0]+self.cell_size, off2[1]+self.cell_size
+        for j in range(9):
+            for i in range (9):
+                cell = o[0]+i*self.cell_size, o[1]+j*self.cell_size, o[0]+i*self.cell_size+self.cell_size, o[1]+j*self.cell_size+self.cell_size
                 offsets.append(cell)
         return offsets

@@ -3,8 +3,7 @@ from itertools import permutations
 from copy import deepcopy
 
 from generator import SudokuGenerator
-from checker import SudokuChecker
-from helpers import is_filled
+from helpers import is_filled, get_nonet
 
 
 class SudokuBoard: 
@@ -16,22 +15,14 @@ class SudokuBoard:
         self.solver = SudokuGenerator(self)
         self.solver.generate()
 
-    def check(self, full=True):
-        if not full or is_filled(self.board):
-            return SudokuChecker.check_board(self.board)
-        else:
-            return False
-
     def check_move(self, pos, value):
-        temp = self.board[pos[0]][pos[1]]
-        self.board[pos[0]][pos[1]] = value
-
-        if SudokuChecker.check_move(self, pos):
-            self.board[pos[0]][pos[1]] = temp
-            return True
-        else: 
-            self.board[pos[0]][pos[1]] = temp
-            return False
+        if value not in self.board[pos[0]]:
+            for i in range(9):
+                if value not in self.board[pos[0]][i]:
+                    if value not in get_nonet(pos):
+                        return True
+                    else: 
+                        return False
     
     def __len__(self):
         return len(self.board)

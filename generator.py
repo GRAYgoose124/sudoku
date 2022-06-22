@@ -3,6 +3,8 @@ from copy import deepcopy
 
 from helpers import get_nonet, is_filled
 
+
+
 class SudokuGenerator:
     def __init__(self, board):
         self.board = board
@@ -20,7 +22,7 @@ class SudokuGenerator:
                 for value in bucket:
                     if value not in board[row]:
                         if value not in [board[i][col] for i in range(9)]:
-                            if value not in get_nonet(board, (row, col)):
+                            if value not in []:
                                 board[row][col] = value
                                 
                                 if is_filled(board):
@@ -34,7 +36,7 @@ class SudokuGenerator:
                 break
         board[row][col] = 0
 
-    def generate(self, attempts=5):
+    def generate(self, attempts=1):
         self.board.board = [ [0 for e in range(9)] for e2 in range(9) ]
         self.board.starting = [ [0 for e in range(9)] for e2 in range(9) ]
         self.board.solution = [ [0 for e in range(9)] for e2 in range(9) ]
@@ -57,7 +59,7 @@ class SudokuGenerator:
             if self.counter != 1:
                 self.board.board[i][j] = back
                 attempts -= 1
-            elif attempts <= 0:
-                self.board.solution = temp_board
 
         self.board.starting = deepcopy(self.board.board)
+        self.board.solution = deepcopy(self.board.board)
+        self.solve(self.board.solution, generate=True)

@@ -65,3 +65,6 @@ class SudokuGenerator:
         self.board.starting = deepcopy(self.board.board)
         self.board.solution = deepcopy(self.board.board)
         self.solve(self.board.solution, generate=True)
+
+    def add_killer_rules(self):
+        pass

@@ -71,7 +71,7 @@ class SudokuApp():
         self.canvas.delete('all')
         self.draw_grid()
 
-        if self.selecting and self.selection_last != self.current_pos:
+        if self.selecting and self.selection_last != self.current_pos and self.current_pos[0] is not None:
             if self.current_pos not in self.selection:
                 self.selection_last = self.current_pos
                 self.selection.append(self.current_pos)
@@ -147,11 +147,14 @@ class SudokuApp():
     def on_release(self, event):
         self.selecting = False
         self.current_pos = self.game.get_closest_cell((event.x, event.y))
+        if len(self.selection) <= 1:
+            self.selection = []
 
     def on_release_right(self, event):
-        self.selection = []
+        pass
 
     def on_press(self, event):
+        self.selection = []
         self.selecting = True
 
     def on_key(self, event): 

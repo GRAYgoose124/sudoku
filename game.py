@@ -23,17 +23,18 @@ class SudokuGame(Frame):
     def get_closest_cell(self, pos):
         current = None
         closest = 1000
-        distance = lambda a, b: ((a[0] - b[0])**2 - self.cell_size / 2) + ((a[1] - b[1])**2 - self.cell_size / 2)**0.5
+        distance = lambda a, b: (((a[0] - b[0])**2 - self.cell_size / 2) + ((a[1] - b[1])**2 - self.cell_size / 2))**0.5
 
         for i, cell in enumerate(self.cells):
             center = (cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2
-
-            
             dist = None
             try:
                 dist = distance(pos, center)
             except ValueError:
                 dist = distance(pos, cell)
+
+            if isinstance(dist, complex):
+                dist = 0
 
             if dist < closest:
                 closest = dist

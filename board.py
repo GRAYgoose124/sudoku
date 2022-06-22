@@ -13,12 +13,11 @@ class SudokuBoard:
 
     def check_move(self, pos, value):
         if value not in self.board[pos[0]]:
-            for i in range(9):
-                if value not in self.board[pos[0]][i]:
-                    if value not in get_nonet(pos):
-                        return True
-                    else: 
-                        return False
+            if value not in [self.board[pos[0]][i] for i in range(9)]:
+                if value not in get_nonet(pos):
+                    return True
+                else: 
+                    return False
     
     def __len__(self):
         return len(self.board)

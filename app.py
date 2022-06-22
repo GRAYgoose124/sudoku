@@ -1,5 +1,7 @@
 from tkinter import Tk, Canvas, BOTH, messagebox
 from tkinter.font import Font
+from copy import deepcopy
+
 from helpers import neighbors
 
 from game import SudokuGame
@@ -13,6 +15,9 @@ class SudokuApp():
         self.hover = (None, None, None)
         self.cages = [[None for _ in range(9)] for _ in range(9)]
         self.move_checking = True
+
+        self.selecting = False
+        self.selection = []
 
         self.notetaking = False
         self.notes = [ [None for list in range(9)] for list in range(9) ]
@@ -37,7 +42,8 @@ class SudokuApp():
         self.draw_grid()
  
     def initKeybinds(self):
-        self.root.bind('<ButtonRelease-1>', self.on_click)
+        self.root.bind('<Button-1>', self.on_press)
+        self.root.bind('<ButtonRelease-1>', self.on_release)
         self.root.bind('<Key>', self.on_key)
         self.root.bind('S', lambda e: self.game.solver.solve(self.game.board.board, generate=True))
         self.root.bind('R', lambda e: setattr(self.game.board, 'board', deepcopy(self.game.board.starting)))
@@ -46,15 +52,26 @@ class SudokuApp():
         self.root.bind('N', lambda e: self.game.solver.generate())
         self.root.bind('n', lambda e: setattr(self, 'notetaking', not self.notetaking))
         self.root.bind('<Escape>', self.quit)
+        self.root.bind('<Motion>', self.motion)
 
     def run(self):
         self.root.geometry("550x550+500+500")
         self.update()
         self.root.mainloop()
-        
+
+    def motion(self, event):
+        if self.selecting:
+            self.current_pos = self.game.get_closest_cell((event.x, event.y))
+
     def update(self):
         self.canvas.delete('all')
         self.draw_grid()
+
+        if self.selecting:
+            if self.current_pos not in self.selection:
+                self.selection.append(self.current_pos)
+            print(self.selection)
+
         self.root.after(13, self.update)
 
     def quit(self, event):
@@ -63,16 +80,20 @@ class SudokuApp():
     def draw_grid(self):
         o = [self.game.pos[0], self.game.pos[1]]
 
-        for _i, cell in enumerate(self.game.cells):
+        for _i, c in enumerate(self.game.cells):
             i, j = _i // 9, _i % 9
 
+            cell = c
             value = self.game.board[i][j]
             notes = self.notes[i][j]
+            
+       
 
             # get cell center
             if value == 0:
                 value = ' '
-            center = (cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2
+            center = [(cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2]
+
 
             # Color the cells based on the last move
             if self.current_pos is not None and self.current_pos[0] == i and self.current_pos[1] == j:
@@ -85,9 +106,16 @@ class SudokuApp():
 
                     self.last_move = None
 
+            # hover color
             filled = self.filled
             if self.hover[0] == i and self.hover[1] == j:
                 filled = self.hover
+
+            # draw selection
+            for s in self.selection:
+                if s[0] == i and s[1] == j:
+                    filled = (i, j,'blue')
+                
             
             # grid cell and value
             self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=filled[2] if filled[0] == i and filled[1] ==  j else '', outline='black')
@@ -103,10 +131,15 @@ class SudokuApp():
 
 
         # Outlining square         
-        self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2) , o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size, self.game.cells[-1][1]+self.game.cell_size)
+        self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2), o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.2, self.game.cells[-1][1]+self.game.cell_size*1.2)
 
-    def on_click(self, event):
+    def on_release(self, event):
+        self.selection = []
+        self.selecting = False
         self.current_pos = self.game.get_closest_cell((event.x, event.y))
+
+    def on_press(self, event):
+        self.selecting = True
 
     def on_key(self, event): 
         if self.current_pos is not None:

@@ -44,10 +44,22 @@ class SudokuGame(Frame):
 
     def get_cell_offsets(self, pos):
         o = (self.cell_size, self.cell_size)
-
+        sad = lambda x,y: (x[0] + y[0], x[1] + y[1],  x[2] + y[2], x[3] + y[3])
+          
         offsets = []
         for j in range(9):
             for i in range (9):
                 cell = o[0]+i*self.cell_size, o[1]+j*self.cell_size, o[0]+i*self.cell_size+self.cell_size, o[1]+j*self.cell_size+self.cell_size
+              
+                if i >= 3:
+                    cell = sad(cell, [self.cell_size * 0.1, 0, self.cell_size * 0.1, 0])
+                if i >= 6:
+                    cell = sad(cell, [self.cell_size * 0.1, 0, self.cell_size * 0.1, 0])
+                if j >= 3:
+                    cell = sad(cell, [0, self.cell_size * 0.1, 0, self.cell_size * 0.1])
+                if j >= 6:
+                    cell = sad(cell, [0, self.cell_size * 0.1, 0, self.cell_size * 0.1])
+    
                 offsets.append(cell)
+
         return offsets

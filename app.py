@@ -18,6 +18,7 @@ class SudokuApp():
 
         self.selecting = False
         self.selection = []
+        self.selection_last = None
 
         self.notetaking = False
         self.notes = [ [None for list in range(9)] for list in range(9) ]
@@ -46,7 +47,8 @@ class SudokuApp():
         self.root.bind('<ButtonRelease-1>', self.on_release)
         self.root.bind('<Key>', self.on_key)
         self.root.bind('S', lambda e: self.game.solver.solve(self.game.board.board, generate=True))
-        self.root.bind('R', lambda e: setattr(self.game.board, 'board', deepcopy(self.game.board.starting)))
+        self.root.bind('s', lambda e: setattr(self, 'selection', list()))
+        self.root.bind('R', lambda e: self.restart)
         self.root.bind('C', self.check_solution)
         self.root.bind('c', lambda e: setattr(self, 'move_checking', not self.move_checking))
         self.root.bind('N', lambda e: self.game.solver.generate())
@@ -59,18 +61,17 @@ class SudokuApp():
         self.update()
         self.root.mainloop()
 
-    def motion(self, event):
-        if self.selecting:
-            self.current_pos = self.game.get_closest_cell((event.x, event.y))
-
     def update(self):
         self.canvas.delete('all')
         self.draw_grid()
 
-        if self.selecting:
+        if self.selecting and self.selection_last != self.current_pos:
             if self.current_pos not in self.selection:
+                self.selection_last = self.current_pos
                 self.selection.append(self.current_pos)
-            print(self.selection)
+            else:
+                self.selection_last = self.current_pos
+                self.selection.remove(self.current_pos)
 
         self.root.after(13, self.update)
 
@@ -83,17 +84,14 @@ class SudokuApp():
         for _i, c in enumerate(self.game.cells):
             i, j = _i // 9, _i % 9
 
-            cell = c
+            cell = list(c)
             value = self.game.board[i][j]
             notes = self.notes[i][j]
             
-       
-
             # get cell center
             if value == 0:
                 value = ' '
             center = [(cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2]
-
 
             # Color the cells based on the last move
             if self.current_pos is not None and self.current_pos[0] == i and self.current_pos[1] == j:
@@ -114,8 +112,7 @@ class SudokuApp():
             # draw selection
             for s in self.selection:
                 if s[0] == i and s[1] == j:
-                    filled = (i, j,'blue')
-                
+                    filled = (i, j,'lightblue')
             
             # grid cell and value
             self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=filled[2] if filled[0] == i and filled[1] ==  j else '', outline='black')
@@ -132,9 +129,15 @@ class SudokuApp():
 
         # Outlining square         
         self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2), o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.2, self.game.cells[-1][1]+self.game.cell_size*1.2)
+ 
+    def restart(self, event):
+        self.game.board.board = deepcopy(self.game.board.starting)
+        self.notes = [ [None for list in range(9)] for list in range(9) ]
+
+    def motion(self, event):
+        self.current_pos = self.game.get_closest_cell((event.x, event.y))
 
     def on_release(self, event):
-        self.selection = []
         self.selecting = False
         self.current_pos = self.game.get_closest_cell((event.x, event.y))
 
@@ -156,10 +159,17 @@ class SudokuApp():
                             self.last_move = False
             else:
                 if event.char.isdigit():
-                    if event.char not in self.notes[self.current_pos[0]][self.current_pos[1]]:
-                        self.notes[self.current_pos[0]][self.current_pos[1]][event.char] = True
+                    if len(self.selection) != 0:
+                        for cell in self.selection:
+                            if event.char not in self.notes[cell[0]][cell[1]]:
+                                self.notes[cell[0]][cell[1]][event.char] = True
+                            else:
+                                del(self.notes[cell[0]][cell[1]][event.char])        
                     else:
-                        del(self.notes[self.current_pos[0]][self.current_pos[1]][event.char])        
+                        if event.char not in self.notes[self.current_pos[0]][self.current_pos[1]]:
+                            self.notes[self.current_pos[0]][self.current_pos[1]][event.char] = True
+                        else:
+                            del(self.notes[self.current_pos[0]][self.current_pos[1]][event.char])        
 
     def check_solution(self, event):
         for r1,r2 in zip(self.game.board.board, self.game.board.solution):

@@ -13,6 +13,7 @@ class SudokuApp():
         self.last_move = None
         self.filled = (None, None, None)
         self.hover = (None, None, None)
+
         self.cages = [[None for _ in range(9)] for _ in range(9)]
         self.move_checking = True
 
@@ -20,7 +21,7 @@ class SudokuApp():
         self.selection = []
         self.selection_last = None
 
-        self.notetaking = False
+        self.notetaking = True
         self.notes = None
         self.init_notes()
 
@@ -75,19 +76,18 @@ class SudokuApp():
             if self.current_pos not in self.selection:
                 self.selection_last = self.current_pos
                 self.selection.append(self.current_pos)
-            else:
-                self.selection_last = self.current_pos
-                self.selection.remove(self.current_pos)
+            #else:
+             #   self.selection_last = self.current_pos
+            #    self.selection.remove(self.current_pos)
 
         self.root.after(13, self.update)
 
     def draw_grid(self):
         o = [self.game.pos[0], self.game.pos[1]]
 
-        for _i, c in enumerate(self.game.cells):
+        for _i, cell in enumerate(self.game.cells):
             i, j = _i // 9, _i % 9
 
-            cell = list(c)
             value = self.game.board[i][j]
             notes = self.notes[i][j]
             
@@ -96,7 +96,7 @@ class SudokuApp():
                 value = ' '
             center = [(cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2]
 
-            # draw selection TODO: change self.filled to list and refactor
+            # draw selection TODO: change self.filled to list and refactor?
             filled = self.filled
             for s in self.selection:
                 if s[0] == i and s[1] == j:
@@ -129,9 +129,8 @@ class SudokuApp():
                 note_offset = addd(neighbors[int(c) - 1], (self.game.cell_size * .3, self.game.cell_size * .3))
                 self.canvas.create_text(center[0]+note_offset[0], center[1]+note_offset[1], font=self.notefont, text=c, fill='darkblue')
 
-
         # Outlining square         
-        self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2), o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.2, self.game.cells[-1][1]+self.game.cell_size*1.2)
+        self.canvas.create_rectangle((o[0]-self.game.cell_size*4.1), o[1] - self.game.cell_size*4.1, self.game.cells[-1][0]+self.game.cell_size*1.1, self.game.cells[-1][1]+self.game.cell_size*1.1)
    
     def quit(self, event):
         self.root.quit()
@@ -151,8 +150,8 @@ class SudokuApp():
             self.selection = []
 
     def on_release_right(self, event):
-        for e in self.selection:
-            self.notes[e[0]][e[1]] = {}
+        for e in self.selection:                
+                self.notes[e[0]][e[1]] = {}
 
     def on_press(self, event):
         self.selection = []
@@ -175,10 +174,11 @@ class SudokuApp():
                 if event.char.isdigit():
                     if len(self.selection) != 0:
                         for cell in self.selection:
-                            if event.char not in self.notes[cell[0]][cell[1]]:
-                                self.notes[cell[0]][cell[1]][event.char] = True
-                            else:
-                                del(self.notes[cell[0]][cell[1]][event.char])        
+                            if self.game.board.board[cell[0]][cell[1]] == 0:
+                                if event.char not in self.notes[cell[0]][cell[1]]:
+                                    self.notes[cell[0]][cell[1]][event.char] = True
+                                else:
+                                    del(self.notes[cell[0]][cell[1]][event.char])        
                     else:
                         if event.char not in self.notes[self.current_pos[0]][self.current_pos[1]]:
                             self.notes[self.current_pos[0]][self.current_pos[1]][event.char] = True

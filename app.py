@@ -81,9 +81,6 @@ class SudokuApp():
 
         self.root.after(13, self.update)
 
-    def quit(self, event):
-        self.root.quit()
-
     def draw_grid(self):
         o = [self.game.pos[0], self.game.pos[1]]
 
@@ -99,6 +96,12 @@ class SudokuApp():
                 value = ' '
             center = [(cell[2] + cell[0]) / 2 , (cell[3] + cell[1]) / 2]
 
+            # draw selection TODO: change self.filled to list and refactor
+            filled = self.filled
+            for s in self.selection:
+                if s[0] == i and s[1] == j:
+                    filled = (i, j,'lightblue')
+
             # Color the cells based on the last move
             if self.current_pos is not None and self.current_pos[0] == i and self.current_pos[1] == j:
                 self.hover = (i, j, 'grey')
@@ -111,14 +114,8 @@ class SudokuApp():
                     self.last_move = None
 
             # hover color
-            filled = self.filled
             if self.hover[0] == i and self.hover[1] == j:
                 filled = self.hover
-
-            # draw selection
-            for s in self.selection:
-                if s[0] == i and s[1] == j:
-                    filled = (i, j,'lightblue')
             
             # grid cell and value
             self.canvas.create_rectangle(cell[0], cell[1], cell[2], cell[3], fill=filled[2] if filled[0] == i and filled[1] ==  j else '', outline='black')
@@ -135,13 +132,17 @@ class SudokuApp():
 
         # Outlining square         
         self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2), o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.2, self.game.cells[-1][1]+self.game.cell_size*1.2)
- 
+   
+    def quit(self, event):
+        self.root.quit()
+
     def restart_game(self, event):
         self.game.board.board = deepcopy(self.game.board.starting)
         self.init_notes()
 
     def motion(self, event):
-        self.current_pos = self.game.get_closest_cell((event.x, event.y))
+        if self.selecting:
+            self.current_pos = self.game.get_closest_cell((event.x, event.y))
 
     def on_release(self, event):
         self.selecting = False

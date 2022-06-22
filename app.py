@@ -151,7 +151,8 @@ class SudokuApp():
             self.selection = []
 
     def on_release_right(self, event):
-        pass
+        for e in self.selection:
+            self.notes[e[0]][e[1]] = {}
 
     def on_press(self, event):
         self.selection = []

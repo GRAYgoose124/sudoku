@@ -21,11 +21,9 @@ class SudokuApp():
         self.selection_last = None
 
         self.notetaking = False
-        self.notes = [ [None for list in range(9)] for list in range(9) ]
-        for i, r in enumerate(self.notes):
-            for j, e in enumerate(r):
-                self.notes[i][j] = {}
-        
+        self.notes = None
+        self.init_notes()
+
         self.root = Tk()
         self.cellfont = Font(family="Terminus", size=24, weight="bold")
         self.notefont = Font(family="Terminus", size=8)
@@ -44,11 +42,12 @@ class SudokuApp():
  
     def initKeybinds(self):
         self.root.bind('<Button-1>', self.on_press)
+        self.root.bind('<ButtonRelease-3>', self.on_release_right)
         self.root.bind('<ButtonRelease-1>', self.on_release)
         self.root.bind('<Key>', self.on_key)
         self.root.bind('S', lambda e: self.game.solver.solve(self.game.board.board, generate=True))
         self.root.bind('s', lambda e: setattr(self, 'selection', list()))
-        self.root.bind('R', lambda e: self.restart)
+        self.root.bind('R', self.restart_game)
         self.root.bind('C', self.check_solution)
         self.root.bind('c', lambda e: setattr(self, 'move_checking', not self.move_checking))
         self.root.bind('N', lambda e: self.game.solver.generate())
@@ -56,6 +55,13 @@ class SudokuApp():
         self.root.bind('<Escape>', self.quit)
         self.root.bind('<Motion>', self.motion)
 
+    def init_notes(self):
+        self.notes = [ [None for list in range(9)] for list in range(9) ]
+
+        for i, r in enumerate(self.notes):
+            for j, e in enumerate(r):
+                self.notes[i][j] = {}
+        
     def run(self):
         self.root.geometry("550x550+500+500")
         self.update()
@@ -130,9 +136,9 @@ class SudokuApp():
         # Outlining square         
         self.canvas.create_rectangle((o[0]-self.game.cell_size*4.2), o[1] - self.game.cell_size*4.2, self.game.cells[-1][0]+self.game.cell_size*1.2, self.game.cells[-1][1]+self.game.cell_size*1.2)
  
-    def restart(self, event):
+    def restart_game(self, event):
         self.game.board.board = deepcopy(self.game.board.starting)
-        self.notes = [ [None for list in range(9)] for list in range(9) ]
+        self.init_notes()
 
     def motion(self, event):
         self.current_pos = self.game.get_closest_cell((event.x, event.y))
@@ -140,6 +146,9 @@ class SudokuApp():
     def on_release(self, event):
         self.selecting = False
         self.current_pos = self.game.get_closest_cell((event.x, event.y))
+
+    def on_release_right(self, event):
+        self.selection = []
 
     def on_press(self, event):
         self.selecting = True
